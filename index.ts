@@ -4,16 +4,19 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
-import SQL from "./src/service/mysql";
+import MySQL from "./src/service/mysql";
 import TokenHandler from "./src/service/TokenHandler";
+import UserHandler from "./src/service/UserHandler";
+import { userData } from "./src/model/userData.type";
 
 dotenv.config();
 
 const app: Express = express();
 const port: string | number = process.env.PORT || 3000;
 
-const sql: SQL = new SQL();
+const sql: MySQL = new MySQL();
 const th: TokenHandler = new TokenHandler();
+const uh: UserHandler = new UserHandler();
 
 app.use(
     cors({
@@ -95,8 +98,15 @@ app.get("/logout", (req: Request, res: Response) => {
     res.status(200).json({ message: "Logout successful" });
 });
 
-app.post("/api/register", (req: Request, res: Response) => {
+app.post("/api/register", async (req: Request, res: Response) => {
     const data = req.body;
+    const uhData: userData = {
+        userName: data.userName,
+        email: data.email,
+        password: data.password,
+    };
+
+    await uh.handleRegister(uhData);
 });
 
 app.listen(port, () => {

@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export default class SQL {
+export default class MySQL {
     private _pool;
     private _rows: QueryResult;
     private _fields: FieldPacket[];
@@ -35,6 +35,17 @@ export default class SQL {
         [this._rows, this._fields] = await this._pool.query(querystring, params.search);
 
         return this._rows;
+    }
+
+    /**
+     * insertUser
+     * @param userName string
+     * @param password string hashed
+     */
+    public async insertUser(userName: string, email: string, password: string) {
+        // Default user level is 4 (user), can be upgraded in admin menu
+        const query = "INSERT INTO users SET username = ?, email = ?, password = ?, level_id = 4";
+        await this._pool.query(query, [userName, email, password]);
     }
 
     /**
