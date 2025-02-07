@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import SQL from "./src/service/mysql";
-import TokenHandler from "./src/service/tokenHandler";
+import TokenHandler from "./src/service/TokenHandler";
 
 dotenv.config();
 
@@ -56,6 +56,7 @@ app.post("/api/login", async (req: Request, res: Response) => {
         }
 
         const token: string = th.createToken(user);
+        console.log(token);
         res.cookie("authToken", token, {
             httpOnly: true,
             secure: process.env.ENVIROMENT === "",
@@ -82,6 +83,16 @@ app.get("/api/checkAuth", (req: Request, res: Response) => {
     } catch (error) {
         res.status(401).json({ message: error });
     }
+});
+
+app.get("/logout", (req: Request, res: Response) => {
+    res.cookie("authToken", "", {
+        httpOnly: true,
+        secure: process.env.ENVIROMENT === "",
+        sameSite: "strict",
+        expires: new Date(0),
+    });
+    res.status(200).json({ message: "Logout successful" });
 });
 
 app.post("/api/register", (req: Request, res: Response) => {
