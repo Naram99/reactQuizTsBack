@@ -4,9 +4,9 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
-import MySQL from "./src/service/mysql";
 import TokenHandler from "./src/service/TokenHandler";
 import UserHandler from "./src/service/UserHandler";
+import MySQL from "./src/service/MySQL";
 import { userData } from "./src/model/userData.type";
 
 dotenv.config();

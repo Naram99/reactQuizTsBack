@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { userData } from "../model/userData.type";
-import MySQL from "./mysql";
+import MySQL from "./MySQL";
 
 export default class UserHandler {
     private _mysql: MySQL;
@@ -10,7 +10,7 @@ export default class UserHandler {
     }
 
     private checkUserData(data: userData) {
-        if (data.userName === "" || data.password === "") return false;
+        if (data.userName === "" || data.password === "" || data.email === "") return false;
         return true;
     }
 
