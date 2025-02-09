@@ -12,7 +12,8 @@ import { userData } from "./src/model/userData.type";
 dotenv.config();
 
 const app: Express = express();
-const port: string | number = process.env.PORT || 3000;
+const host: string = process.env.HOST || "localhost";
+const port: number = Number(process.env.PORT) || 3000;
 
 const sql: MySQL = new MySQL();
 const th: TokenHandler = new TokenHandler();
@@ -20,10 +21,19 @@ const uh: UserHandler = new UserHandler();
 
 app.use(
     cors({
-        origin: "http://localhost:5173",
-        credentials: true,
+        origin: (origin, callback) => {
+            console.log(origin);
+
+            if (!origin || /^http:\/\/192\.168\.\d+\.\d+:\d+$/.test(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error("CORS not allowed"), false);
+            }
+        },
+        credentials: true, // Engedi a sütik küldését
     })
 );
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -33,6 +43,11 @@ app.get("/", (req: Request, res: Response) => {
 
 app.post("/api/login", async (req: Request, res: Response) => {
     const data = req.body;
+    const uhData: userData = {
+        userName: data.userName,
+        password: data.password,
+        email: "",
+    };
 
     try {
         const users: any = await sql.queryexec(
@@ -62,8 +77,8 @@ app.post("/api/login", async (req: Request, res: Response) => {
         console.log(token);
         res.cookie("authToken", token, {
             httpOnly: true,
-            secure: process.env.ENVIROMENT === "",
-            sameSite: "strict",
+            secure: false,
+            sameSite: "none",
             maxAge: 3600000,
         });
 
@@ -88,11 +103,11 @@ app.get("/api/checkAuth", (req: Request, res: Response) => {
     }
 });
 
-app.get("/logout", (req: Request, res: Response) => {
+app.get("/api/logout", (req: Request, res: Response) => {
     res.cookie("authToken", "", {
         httpOnly: true,
-        secure: process.env.ENVIROMENT === "",
-        sameSite: "strict",
+        secure: false,
+        sameSite: "none",
         expires: new Date(0),
     });
     res.status(200).json({ message: "Logout successful" });
@@ -106,9 +121,11 @@ app.post("/api/register", async (req: Request, res: Response) => {
         password: data.password,
     };
 
-    await uh.handleRegister(uhData);
+    const handlerResp = await uh.handleRegister(uhData);
+
+    res.status(handlerResp.code).json({ error: handlerResp.error, message: handlerResp.message });
 });
 
-app.listen(port, () => {
-    console.log(`Server is running at localhost:${port}`);
+app.listen(port, "0.0.0.0", () => {
+    console.log(`Server is running at ${host}:${port}`);
 });

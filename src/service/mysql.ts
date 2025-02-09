@@ -1,11 +1,11 @@
-import mysql, { FieldPacket, QueryResult } from "mysql2/promise";
+import mysql, { FieldPacket, QueryResult, RowDataPacket } from "mysql2/promise";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 export default class MySQL {
     private _pool;
-    private _rows: QueryResult;
+    private _rows: RowDataPacket[];
     private _fields: FieldPacket[];
 
     constructor() {
@@ -33,6 +33,21 @@ export default class MySQL {
 
         this._rows = this._fields = [];
         [this._rows, this._fields] = await this._pool.query(querystring, params.search);
+
+        return this._rows;
+    }
+
+    /**
+     * selectUser
+     */
+    public async selectUser(username: string): Promise<mysql.RowDataPacket[]> {
+        const query = `SELECT u.username, u.password, ul.level 
+            FROM users u 
+            JOIN user_level ul 
+            ON u.level_id = ul.id 
+            WHERE username = ?`;
+
+        [this._rows] = await this._pool.query<RowDataPacket[]>(query, [username]);
 
         return this._rows;
     }
